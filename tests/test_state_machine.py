@@ -57,6 +57,26 @@ def test_chase_interrupts_walk():
     assert state == State.CHASE
 
 
+def test_click_cycles_state():
+    sm = StateMachine()
+    assert sm.state == State.IDLE
+    sm.on_click()
+    assert sm.state == State.WALK
+    sm.on_click()
+    assert sm.state == State.STALK
+    sm.on_click()
+    assert sm.state == State.TRASH_CAN
+    sm.on_click()
+    assert sm.state == State.IDLE  # wraps around
+
+
+def test_click_from_chase_goes_to_idle():
+    sm = StateMachine()
+    sm._enter_state(State.CHASE)
+    sm.on_click()
+    assert sm.state == State.IDLE
+
+
 def test_direction_changes():
     sm = StateMachine()
     initial = sm.direction

@@ -43,6 +43,9 @@ class StateMachine:
 
     CHASE_TRIGGER_DISTANCE = 150  # pixels — cursor must be this close to trigger chase
 
+    # Click cycles through these states in order
+    CLICK_CYCLE = [State.IDLE, State.WALK, State.STALK, State.TRASH_CAN]
+
     def __init__(self):
         self.state = State.IDLE
         self.direction = Direction.RIGHT
@@ -81,6 +84,16 @@ class StateMachine:
             else:
                 self._enter_state(State.IDLE)
 
+        return self.state
+
+    def on_click(self):
+        """User clicked the cat — cycle to next behavior."""
+        try:
+            idx = self.CLICK_CYCLE.index(self.state)
+            next_state = self.CLICK_CYCLE[(idx + 1) % len(self.CLICK_CYCLE)]
+        except ValueError:
+            next_state = State.IDLE
+        self._enter_state(next_state)
         return self.state
 
     def _enter_state(self, new_state):

@@ -23,6 +23,7 @@ class PetCat:
         self.frame_index = 0
         self.ticks_per_frame = 6   # slow down animation (tick = ~33ms at 30fps)
         self.tick_counter = 0
+        self._needs_direction_flip = False
 
     def animation_name(self, state):
         """Map state enum to sprite animation name."""
@@ -70,11 +71,11 @@ class PetCat:
 
     def _move_walk(self, direction, window_rect):
         self.x += self.WALK_SPEED * direction.value
-        self._clamp_to_window(window_rect)
+        self._bounce_at_edges(window_rect)
 
     def _move_stalk(self, direction, window_rect):
         self.x += self.STALK_SPEED * direction.value
-        self._clamp_to_window(window_rect)
+        self._bounce_at_edges(window_rect)
 
     def _move_chase(self, cursor_pos, window_rect):
         cx, cy = cursor_pos
@@ -83,6 +84,19 @@ class PetCat:
         elif cx < self.x + self.renderer.sprite_w // 2:
             self.x -= self.CHASE_SPEED
         self._clamp_to_window(window_rect)
+
+    def _bounce_at_edges(self, window_rect):
+        """Reverse direction when cat hits window edge."""
+        left_bound = window_rect.left
+        right_bound = window_rect.right - self.renderer.sprite_w
+        if self.x <= left_bound:
+            self.x = left_bound
+            self._needs_direction_flip = True
+        elif self.x >= right_bound:
+            self.x = right_bound
+            self._needs_direction_flip = True
+        else:
+            self._needs_direction_flip = False
 
     def _clamp_to_window(self, window_rect):
         """Keep cat within window's top edge bounds."""
@@ -99,6 +113,15 @@ class PetCat:
         cat_cx = self.x + self.renderer.sprite_w // 2
         cat_cy = self.y + self.renderer.sprite_h // 2
         return math.hypot(cx - cat_cx, cy - cat_cy)
+
+    @property
+    def needs_direction_flip(self):
+        return self._needs_direction_flip
+
+    def contains_point(self, x, y):
+        """Check if a screen coordinate is within the cat sprite."""
+        return (self.x <= x <= self.x + self.renderer.sprite_w
+                and self.y <= y <= self.y + self.renderer.sprite_h)
 
     @property
     def position(self):

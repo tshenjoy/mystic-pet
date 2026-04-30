@@ -50,12 +50,12 @@ def main():
 
     toggle_action = QAction("Hide Pet", menu)
     def toggle_pet():
-        if overlay.isVisible():
-            overlay.hide()
-            toggle_action.setText("Show Pet")
-        else:
-            overlay.show()
+        if overlay._user_hidden:
+            overlay.set_user_hidden(False)
             toggle_action.setText("Hide Pet")
+        else:
+            overlay.set_user_hidden(True)
+            toggle_action.setText("Show Pet")
     toggle_action.triggered.connect(toggle_pet)
     menu.addAction(toggle_action)
 

@@ -4,6 +4,7 @@ import sys
 
 if sys.platform == "win32":
     import win32gui
+    import win32con
 
 
 class WindowRect:
@@ -35,6 +36,7 @@ class WindowTracker:
 
     def __init__(self):
         self._last_rect = WindowRect()
+        self._last_maximized = False
         self._is_windows = sys.platform == "win32"
 
     def get_active_window_rect(self):
@@ -48,9 +50,24 @@ class WindowTracker:
                 left, top, right, bottom = win32gui.GetWindowRect(hwnd)
                 self._last_rect = WindowRect(left, top, right, bottom)
         except Exception:
-            pass  # keep last known rect
+            pass
 
         return self._last_rect
+
+    def is_maximized(self):
+        """Check if the active window is maximized."""
+        if not self._is_windows:
+            return self._last_maximized
+
+        try:
+            hwnd = win32gui.GetForegroundWindow()
+            if hwnd:
+                placement = win32gui.GetWindowPlacement(hwnd)
+                self._last_maximized = (placement[1] == win32con.SW_SHOWMAXIMIZED)
+        except Exception:
+            pass
+
+        return self._last_maximized
 
     def get_cursor_position(self):
         """Returns (x, y) of mouse cursor."""
