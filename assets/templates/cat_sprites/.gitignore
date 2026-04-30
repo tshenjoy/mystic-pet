@@ -1,0 +1,8 @@
+# Downloaded archives (kept for reference but not needed in repo)
+*.zip
+*.7z
+
+# Keep the extracted directories and documentation
+!01_shepardskin/
+!RESOURCES.md
+!README_LICENSES.txt
