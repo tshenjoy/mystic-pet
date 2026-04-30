@@ -1,13 +1,20 @@
 # Cat Sprite Resources for Desktop Pet Customization
 
-This directory contains 5 open-source cat sprite resources collected from OpenGameArt.org. Each resource has been evaluated for suitability to be used as a template for personalization (fur color recoloring, eye color adjustment, etc.).
+This directory contains open-source cat sprite resources collected from OpenGameArt.org. Each resource has been evaluated for suitability to be used as a template for personalization (fur color recoloring, eye color adjustment, etc.).
 
 ## Overview
 
 These resources will serve as **base templates** for the customization pipeline:
 1. Extract dominant fur colors from user's uploaded cat photo (KMeans clustering)
-2. Recolor sprites using the extracted colors
+2. Recolor sprites using the extracted colors via PNG sprite sheet manipulation
 3. Optionally adjust eye color and other features based on photo analysis
+
+**Key Requirement:** Resources should have:
+- ✅ Simple pixel art style (easy to recolor)
+- ✅ Minimal color palette (4-8 colors ideal)
+- ✅ Good walking stance in side profile view
+- ✅ Clear head and torso separation
+- ✅ PNG or convertible format (avoid complex GIFs)
 
 ---
 
@@ -43,118 +50,126 @@ These resources will serve as **base templates** for the customization pipeline:
 
 ---
 
-### 2. Sergeant Cat
-**File:** `02_sergeant_cat.png`
-
-**License:** CC-BY 3.0 (requires attribution: link to www.GameBuildingTools.com)
-
-**Source:** https://opengameart.org/content/sergeant-cat
-
-**Characteristics:**
-- Sprite sheet format
-- 6 individual frames in vertical layout (118×900px)
-- Clear side-profile walking stance
-- Endless runner game art style
-- More detailed than Shepardskin
-
-**Frames:** 6 sequential walking frames
-
-**Post-processing Difficulty:** ⭐⭐ **EASY**
-- Larger pixel size = easier to work with
-- Good frame separation
-- More detail = slightly more complex recoloring but clearer anatomy
-- **RECOMMENDATION:** Excellent fallback; use for walking animation reference
-
----
-
-### 3. Pirate Cat
-**File:** `03_pirate_cat.png`
-
-**License:** CC-BY 3.0 (requires attribution: link to www.GameBuildingTools.com)
-
-**Source:** https://opengameart.org/content/pirate-cat
-
-**Characteristics:**
-- Sprite sheet format
-- 6 frames in vertical layout (59×450px)
-- Related to Sergeant Cat (same game project)
-- Running/walking animation
-- Smaller dimensions than Sergeant Cat
-
-**Post-processing Difficulty:** ⭐⭐ **EASY**
-- Consistent with Sergeant Cat style
-- Smaller size = less detail but still workable
-- Good alternative stance for variety
-- **RECOMMENDATION:** Use as secondary walking variant or running animation
-
----
-
-### 4. Happy/Cool Cat
-**File:** `04_happy_cool_cat.png`
-
-**License:** CC-BY 3.0 (requires attribution: link to www.GameBuildingTools.com)
-
-**Source:** https://opengameart.org/content/happy-cat
-
-**Characteristics:**
-- Sprite sheet format
-- 6 frames in vertical layout (118×900px)
-- Yellow/warm-toned cat (different from others)
-- Same dimensions and style as Sergeant Cat
-- From the same game project
-
-**Post-processing Difficulty:** ⭐⭐ **EASY**
-- Identical format to Sergeant Cat
-- Good for testing color extraction & recoloring
-- Useful reference for eye color variation
-- **RECOMMENDATION:** Use for testing color transformation pipeline
-
----
-
-### 5. Fat Side-scroller Cat
-**File:** `05_fat_sidescroller_cat.7z` (requires 7-Zip extraction)
+### 2. Orange Fat Cat
+**File:** `02_orange_fat_cat.zip` (to be downloaded)
 
 **License:** CC0 (Public Domain – zero restrictions!)
 
-**Source:** https://opengameart.org/content/fat-side-scroller-cat
+**Source:** https://opengameart.org/content/orange-fat-cat
 
 **Characteristics:**
-- 8-frame walk cycle
-- Includes GIMP source files (.xcf)
-- More detailed pixel art (rounder, "fluffier" style)
-- Larger sprite size = more workable for scaling
-- Alternative aesthetic (less angular than others)
+- **50+ individual PNG files** (frame-by-frame, not GIF)
+- Pixel art style, simple colors
+- Multiple animations: Idle (2 frames), Walk (19 frames), Jump (10 frames), Dead (15 frames)
+- Complete sprite sheets provided
+- Transparent background (PNG)
+- **Excellent for color substitution due to flat color blocks**
 
-**Post-processing Difficulty:** ⭐⭐⭐ **MODERATE**
-- More detailed/complex pixel patterns
-- Larger size = more pixel manipulation needed
-- Better scalability than others
-- Source files included = can modify base sprites if needed
-- **RECOMMENDATION:** Use if detail level needs to increase; best license (CC0)
+**Animations:**
+- Idle poses (including zombie cat variant)
+- Walk cycle (19 frames = smooth, detailed animation)
+- Jump mechanic
+- Death/falling
+
+**Post-processing Difficulty:** ⭐⭐ **EASY**
+- PNG format = precise RGB color replacement
+- Individual frames available = can recolor frame-by-frame or as batch
+- Flat color palette = predictable for color mapping
+- 19-frame walk cycle = very smooth animation
+- **RECOMMENDATION:** EXCELLENT secondary template; highly suitable for recoloring
+
+**Why suitable:**
+- ✅ Multiple PNGs (no GIF complexity)
+- ✅ Comprehensive animation set
+- ✅ CC0 license (no attribution needed)
+- ✅ Proven popular (1372 downloads)
+
+---
+
+### 3. Cats - Pixel Art (by peony)
+**File:** `03_cats_pixel_art.zip` (to be downloaded)
+
+**License:** CC0 (Public Domain – zero restrictions!)
+
+**Source:** https://opengameart.org/content/cats-pixel-art
+
+**Characteristics:**
+- **16×16 pixel tiles** – very small, simple
+- Multiple color variations: grey, beige (siamese), black, white, orange
+- Includes: Head, Paw, Eyes (dilated & normal), Full body, Accessories (Catnip, Yarn, Bell, Mouse, Fish)
+- Pure pixel art style
+- Excellent color palette reference
+
+**Post-processing Difficulty:** ⭐ **VERY EASY**
+- Tiny size = minimal colors per sprite
+- Perfect for understanding color composition
+- Useful as a **testing ground for color extraction pipeline**
+- Multiple existing color variants = can validate KMeans extraction against known outputs
+- **RECOMMENDATION:** EXCELLENT for testing & validation; use as reference
+
+**Why suitable:**
+- ✅ Extremely simple (easy to debug recoloring)
+- ✅ Multiple color variants provided (validate against them!)
+- ✅ CC0 license
+- ✅ Pure RGB, no indexed color issues
+
+---
+
+### 4. Pixel Cat (by scofanogd)
+**File:** `04_pixel_cat.png` (to be downloaded)
+
+**License:** CC0 (Public Domain – zero restrictions!)
+
+**Source:** https://opengameart.org/content/pixel-cat
+
+**Characteristics:**
+- Single small sprite (~32×32px estimate)
+- Minimalist pixel art cat
+- Simple pose
+- Perfect color palette for learning/testing
+- File size: 2.1 KB (extremely minimal)
+
+**Post-processing Difficulty:** ⭐ **VERY EASY**
+- Minimal pixel art = maximum simplicity
+- Great for prototyping color transformation
+- Good baseline for understanding color substitution
+- **RECOMMENDATION:** Use as minimal reference/test case
+
+**Why suitable:**
+- ✅ Simplest possible cat sprite
+- ✅ CC0 license
+- ✅ Good for validating color substitution logic
 
 ---
 
 ## Usage Strategy for Customization Pipeline
 
 ### Step 1: Select Base Template
-- **Primary:** Shepardskin (simplest, no attribution required)
-- **Fallback:** Sergeant Cat or Happy Cat (good frame quality)
+- **Primary:** Shepardskin (simplest, 4-color palette, good stance)
+- **Secondary:** Orange Fat Cat (19-frame walk cycle, multiple animations)
+- **Testing:** Cats - Pixel Art (validate color extraction against known variants)
+- **Reference:** Pixel Cat (minimal sprite for baseline testing)
 
 ### Step 2: Extract Colors from User's Photo
 ```
 User photo → OpenCV face detection → Pillow crop → KMeans color extraction
 ```
 
-### Step 3: Recolor Base Sprites
-Use PIL's `ImageDraw` or similar to:
-- Map template colors to extracted fur colors
-- Optionally adjust eye color
-- Preserve sprite structure and animation frames
+### Step 3: Recolor Base Sprites (PNG Format Only!)
+Use PIL/Pillow to:
+- Load PNG sprite sheet (single image, not GIF)
+- Map template colors to extracted fur colors via pixel-level transformation
+- Optionally adjust eye color based on photo analysis
+- Preserve sprite structure and animation frame layout
+
+**Key:** Use PNG sprite sheets, NOT GIFs, for efficient color substitution.
+See GIF_EDITING_ANALYSIS.md for why PNG is superior for recoloring.
 
 ### Step 4: Export Personalized Sprite Sheet
-- Generate composite sprite sheet
-- Maintain animation frame timing
+- Generate composite sprite sheet (all frames in PNG format)
+- Maintain animation frame timing in metadata.json
 - Store in `cache/` for runtime use
+- Keep both original template and personalized version
 
 ---
 
@@ -163,52 +178,55 @@ Use PIL's `ImageDraw` or similar to:
 | Resource | License | Attribution Required |
 |----------|---------|----------------------|
 | Shepardskin | No attribution | ❌ No |
-| Sergeant Cat | CC-BY 3.0 | ✅ Yes (GameBuildingTools.com) |
-| Pirate Cat | CC-BY 3.0 | ✅ Yes (GameBuildingTools.com) |
-| Happy Cat | CC-BY 3.0 | ✅ Yes (GameBuildingTools.com) |
-| Fat Side-scroller | CC0 | ❌ No |
+| Orange Fat Cat | CC0 | ❌ No |
+| Cats - Pixel Art | CC0 | ❌ No |
+| Pixel Cat | CC0 | ❌ No |
 
 ---
 
 ## Technical Notes for Implementation
 
-### Color Mapping
-The Shepardskin sprites use a simple color palette (~4 colors):
-- Body color (main fur)
-- Darker shade (eyes, outline, shadow)
-- Possibly white (eyes, belly)
-- Background transparency
+### Color Mapping Strategy
+The selected resources use simple color palettes (4-8 colors):
+- **Body color** (main fur) – PRIMARY TARGET for recoloring
+- **Darker shade** (shadows, outline, definition) – SECONDARY, auto-darken primary
+- **Eyes** (black/dark center + white highlights) – Detect and substitute separately
+- **Nose/mouth** (pink or similar) – Can recolor or keep neutral
+- **Background** (transparency) – Preserve
 
-KMeans clustering on user photo can extract:
-1. Primary fur color
-2. Secondary fur color (shading)
-3. Eye color
-4. White/highlight color
-
-Then map original sprite colors → new colors in RGB space.
+**KMeans Extraction Pipeline:**
+1. Extract dominant colors from user's cat photo (e.g., top 3-5 colors by frequency)
+2. Map template colors → extracted colors using closest-match in RGB space
+3. Apply substitution to sprite sheet
 
 ### Sprite Dimensions
 - Shepardskin: ~40×40px (original), 80×80px (2x), 160×160px (4x)
-- Sergeant/Happy/Pirate: ~118×150px per frame
-- Fat Cat: ~80×96px per frame (larger, scalable)
+- Orange Fat Cat: ~128×128px per sprite (larger, detailed)
+- Cats - Pixel Art: 16×16px tiles (tiny, minimal)
+- Pixel Cat: ~32×32px (small, minimal)
 
-### Animation Timing (from metadata.json)
-- Walk: 10 FPS, 4-8 frames
-- Run/Chase: 12 FPS, 4-6 frames
-- Idle: 5 FPS, 4 frames
+### Animation Frame Counts
+- Walk: 4-19 frames (Shepardskin has 4, Orange Fat Cat has 19)
+- Idle: 2-4 frames
+- Run/Chase: 4-6 frames
 
-Consider frame counts when selecting template.
+### Format Requirements
+✅ **APPROVED:** PNG (single sprite sheet or individual PNGs)
+❌ **AVOID:** GIF (complex frame-by-frame recoloring, indexed color issues)
+❌ **AVOID:** Layered source files (.xcf, .psd) – too heavy for runtime
 
 ---
 
 ## Next Steps
 
-1. **Extract and process:** Convert GIFs to PNG frame sequences for easier manipulation
-2. **Prototype recoloring:** Test color replacement on Shepardskin sprites
-3. **Build sprite generator:** Implement automated recoloring pipeline (customization/sprite_generator.py)
-4. **Test with real photos:** Validate color extraction and eye detection on sample cat photos
-5. **Composite & cache:** Generate personalized sprite sheets on first run
+1. **Download new resources:** Orange Fat Cat, Cats - Pixel Art, Pixel Cat
+2. **Convert Shepardskin GIFs → PNG sprite sheets** (extract frames, composite)
+3. **Prototype recoloring:** Test color substitution on Shepardskin sprites
+4. **Validate against Cats - Pixel Art:** Use peony's color variants as test cases
+5. **Build sprite generator:** Implement `customization/sprite_generator.py`
+6. **Test with real photos:** Run full pipeline on sample cat images
 
 ---
 
 **Last Updated:** April 30, 2026
+**Status:** Resources refined; ready to download and integrate

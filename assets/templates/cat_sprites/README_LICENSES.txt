@@ -8,36 +8,50 @@
 - **Author:** Shepardskin
 - **Attribution:** Optional - "Credit Shepardskin and/or https://twitter.com/Shepardskin"
 
-### 2. Sergeant Cat
-- **License:** CC-BY 3.0
-- **Source:** https://opengameart.org/content/sergeant-cat
-- **Author:** spoggles
-- **Attribution Required:** ✅ YES
-  - Must include link to https://www.GameBuildingTools.com
-  - Credit: "Sergeant Cat by spoggles (https://www.GameBuildingTools.com)"
-
-### 3. Pirate Cat
-- **License:** CC-BY 3.0
-- **Source:** https://opengameart.org/content/pirate-cat
-- **Author:** spoggles
-- **Attribution Required:** ✅ YES
-  - Must include link to https://www.GameBuildingTools.com
-  - Credit: "Pirate Cat by spoggles (https://www.GameBuildingTools.com)"
-
-### 4. Happy/Cool Cat
-- **License:** CC-BY 3.0
-- **Source:** https://opengameart.org/content/happy-cat
-- **Author:** spoggles
-- **Attribution Required:** ✅ YES
-  - Must include link to https://www.GameBuildingTools.com
-  - Credit: "Happy Cat by spoggles (https://www.GameBuildingTools.com)"
-
-### 5. Fat Side-scroller Cat
+### 2. Orange Fat Cat
 - **License:** CC0 (Public Domain)
-- **Source:** https://opengameart.org/content/fat-side-scroller-cat
-- **Author:** qubodup
-- **Attribution Required:** ❌ NO
-- **Usage:** Completely unrestricted
+- **Source:** https://opengameart.org/content/orange-fat-cat
+- **Author:** megupets
+- **Attribution:** Optional - "megupets.com (if you wish)"
+- **Why This One:** 50+ PNG files, multiple animations (idle, walk, jump, dead), 19-frame smooth walk cycle
+
+### 3. Cats - Pixel Art
+- **License:** CC0 (Public Domain)
+- **Source:** https://opengameart.org/content/cats-pixel-art
+- **Author:** peony
+- **Attribution:** Not required
+- **Why This One:** Multiple color variants (grey, beige, black, white, orange) = perfect for validating color extraction pipeline
+
+### 4. Pixel Cat
+- **License:** CC0 (Public Domain)
+- **Source:** https://opengameart.org/content/pixel-cat
+- **Author:** scofanogd
+- **Attribution:** Not required
+- **Why This One:** Minimal sprite for baseline testing and prototyping
+
+---
+
+## Why We Removed Resources 2-4 from Previous Version
+
+The original selection included:
+- Sergeant Cat (CC-BY 3.0)
+- Pirate Cat (CC-BY 3.0)
+- Happy Cat (CC-BY 3.0)
+- Fat Side-scroller Cat (CC0)
+
+**Decision:** These were replaced because:
+1. Attribution requirements (CC-BY needs active linking)
+2. Less suitable for color substitution pipeline
+3. Limited frame variety compared to Orange Fat Cat
+4. GIF complications with Fat Cat
+5. Better alternatives found with CC0 and more animations
+
+**New selection prioritizes:**
+✅ CC0 licenses (zero restrictions, no attribution overhead)
+✅ PNG format (easier color recoloring)
+✅ Simple pixel art (easier to process)
+✅ Multiple color variants (validation testing)
+✅ Rich animation sets (more usable)
 
 ---
 
@@ -49,22 +63,23 @@ Include in About/Credits dialog:
 ```
 Cat Sprites (Resources for customization):
 - Shepardskin Cat Sprites (no attribution required)
-- Sergeant Cat by spoggles (https://www.GameBuildingTools.com)
-- Pirate Cat by spoggles (https://www.GameBuildingTools.com)
-- Happy Cat by spoggles (https://www.GameBuildingTools.com)
-- Fat Side-scroller Cat by qubodup (CC0)
+- Orange Fat Cat by megupets (CC0)
+- Cats - Pixel Art by peony (CC0)
+- Pixel Cat by scofanogd (CC0)
 
 All resources sourced from OpenGameArt.org
 ```
 
 ### In Source Code
-Include in CREDITS or LICENSE file referencing GameBuildingTools.com for CC-BY resources.
+No CC-BY licenses to comply with = no linking requirements needed!
+Just include resources in assets/ folder with credit to OpenGameArt.org.
 
 ---
 
 ## Compliance Notes
 
-- **Green for distribution:** All resources are free to modify and redistribute
+- **Green for distribution:** All resources are CC0 or no-attribution
 - **No commercial restriction:** All can be used in commercial projects
 - **Derivative works:** Can create personalized versions without additional licensing
-- **Attribution method:** Link + credit in app is sufficient for CC-BY compliance
+- **Attribution:** Optional for all selected resources
+- **Simplification:** Much cleaner than previous selection with CC-BY requirements
