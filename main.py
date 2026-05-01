@@ -63,6 +63,10 @@ def main():
     upload_action.triggered.connect(lambda: _upload_photo(overlay))
     menu.addAction(upload_action)
 
+    reset_action = QAction("Reset to Default Cat", menu)
+    reset_action.triggered.connect(lambda: overlay.reload_sprites())
+    menu.addAction(reset_action)
+
     menu.addSeparator()
 
     quit_action = QAction("Exit", menu)
@@ -77,14 +81,16 @@ def main():
 
 
 def _upload_photo(overlay):
-    """Open file dialog to upload a cat photo (stub for Phase 3)."""
+    """Open file dialog, extract colors, recolor templates, reload sprites."""
     from PyQt6.QtWidgets import QFileDialog
     path, _ = QFileDialog.getOpenFileName(
         None, "Select Cat Photo", "", "Images (*.png *.jpg *.jpeg *.bmp)"
     )
     if path:
-        print(f"[TODO] Process cat photo: {path}")
-        # Phase 3: will call customization pipeline here
+        from customization.importer import process_cat_photo
+        assets_dir = os.path.join(os.path.dirname(__file__), "assets")
+        cache_dir = process_cat_photo(path, assets_dir)
+        overlay.reload_sprites(cache_dir)
 
 
 if __name__ == "__main__":

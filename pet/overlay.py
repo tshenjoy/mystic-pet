@@ -98,6 +98,10 @@ class PetOverlay(QWidget):
             QApplication.processEvents()
             self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
 
+    def reload_sprites(self, custom_dir=None):
+        """Reload sprites after recoloring."""
+        self.renderer.reload_sprites(custom_dir)
+
     def set_user_hidden(self, hidden):
         """Called by system tray toggle."""
         self._user_hidden = hidden

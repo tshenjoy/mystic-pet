@@ -1,9 +1,11 @@
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
 venv/
 .venv/
 cache/
+assets/cache/
 config/user_settings.json
 dist/
 build/

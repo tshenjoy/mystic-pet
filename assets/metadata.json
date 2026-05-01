@@ -1,52 +1,24 @@
 {
   "walk": {
-    "frames": 4,
-    "fps": 10,
-    "anchors": [
-      {"head_x": 24, "head_y": 4, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 8, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 8, "head_angle": 0, "head_scale": 1.0}
-    ]
+    "frames": 6,
+    "fps": 10
   },
   "idle": {
-    "frames": 4,
+    "frames": 6,
     "fps": 5,
-    "anchors": [
-      {"head_x": 24, "head_y": 4, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": 2, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": -2, "head_scale": 1.0}
-    ]
+    "_note": "reuses walk frames until dedicated idle frames exist"
   },
   "stalk": {
-    "frames": 4,
+    "frames": 6,
     "fps": 6,
-    "anchors": [
-      {"head_x": 24, "head_y": 10, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 12, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 10, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 12, "head_angle": 0, "head_scale": 1.0}
-    ]
+    "_note": "reuses walk frames until dedicated stalk frames exist"
   },
   "chase": {
-    "frames": 4,
-    "fps": 12,
-    "anchors": [
-      {"head_x": 24, "head_y": 2, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 6, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 2, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 6, "head_angle": 0, "head_scale": 1.0}
-    ]
+    "frames": 6,
+    "fps": 14
   },
   "trash_can": {
-    "frames": 4,
-    "fps": 8,
-    "anchors": [
-      {"head_x": 24, "head_y": 4, "head_angle": 0, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": 5, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": -5, "head_scale": 1.0},
-      {"head_x": 24, "head_y": 4, "head_angle": 0, "head_scale": 1.0}
-    ]
+    "frames": 6,
+    "fps": 8
   }
 }

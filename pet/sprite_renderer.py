@@ -2,30 +2,25 @@
 
 import os
 import json
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QPolygon
-from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtGui import QPixmap
+
+
+ANIMATION_NAMES = ["idle", "walk", "stalk", "chase", "trash_can"]
 
 
 class SpriteRenderer:
-    """Loads sprite frames from assets/ and provides the current frame.
+    """Loads sprite frames from assets/template/<anim>/*.png.
 
-    If no sprite images exist, draws colored placeholder rectangles
-    so the app runs without art assets.
+    If an animation folder is missing, it reuses the walk frames.
+    Sprite size is auto-detected from the first loaded frame.
     """
 
-    PLACEHOLDER_COLORS = {
-        "idle": "#888888",
-        "walk": "#4488CC",
-        "stalk": "#CC8844",
-        "chase": "#CC4444",
-        "trash_can": "#44CC88",
-    }
-
-    def __init__(self, assets_dir, sprite_size=(64, 64)):
+    def __init__(self, assets_dir):
         self.assets_dir = assets_dir
-        self.sprite_w, self.sprite_h = sprite_size
-        self.frames = {}       # {"walk": [QPixmap, ...], "idle": [...]}
-        self.metadata = {}     # loaded from metadata.json
+        self.frames = {}
+        self.metadata = {}
+        self.sprite_w = 174
+        self.sprite_h = 128
         self._load_metadata()
         self._load_sprites()
 
@@ -38,61 +33,53 @@ class SpriteRenderer:
     def _load_sprites(self):
         template_dir = os.path.join(self.assets_dir, "template")
 
-        for anim_name in ["idle", "walk", "stalk", "chase", "trash_can"]:
+        for anim_name in ANIMATION_NAMES:
             anim_dir = os.path.join(template_dir, anim_name)
-            frames = []
+            frames = self._load_frames_from_dir(anim_dir)
+            if frames:
+                self.frames[anim_name] = frames
 
-            if os.path.isdir(anim_dir):
-                files = sorted(f for f in os.listdir(anim_dir) if f.endswith(".png"))
-                for fname in files:
-                    px = QPixmap(os.path.join(anim_dir, fname))
-                    if not px.isNull():
-                        frames.append(px)
+        # Auto-detect sprite size from first loaded frame
+        for frames in self.frames.values():
+            if frames:
+                self.sprite_w = frames[0].width()
+                self.sprite_h = frames[0].height()
+                break
 
-            if not frames:
-                frames = self._make_placeholder_frames(anim_name)
+        # Fill missing animations with walk frames
+        walk_frames = self.frames.get("walk", [])
+        for anim_name in ANIMATION_NAMES:
+            if anim_name not in self.frames or not self.frames[anim_name]:
+                self.frames[anim_name] = walk_frames
 
-            self.frames[anim_name] = frames
-
-    def _make_placeholder_frames(self, anim_name, num_frames=4):
-        """Generate simple colored rectangles as placeholder sprites."""
-        color = QColor(self.PLACEHOLDER_COLORS.get(anim_name, "#AAAAAA"))
+    def _load_frames_from_dir(self, anim_dir):
+        if not os.path.isdir(anim_dir):
+            return []
+        files = sorted(f for f in os.listdir(anim_dir) if f.endswith(".png"))
         frames = []
-
-        for i in range(num_frames):
-            px = QPixmap(self.sprite_w, self.sprite_h)
-            px.fill(Qt.GlobalColor.transparent)
-            painter = QPainter(px)
-
-            # Slight vertical offset per frame to simulate bobbing
-            bob = (i % 2) * 4
-            painter.setBrush(color)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(4, 4 + bob, self.sprite_w - 8, self.sprite_h - 8, 8, 8)
-
-            # Eyes
-            painter.setBrush(QColor("white"))
-            painter.drawEllipse(18, 14 + bob, 10, 10)
-            painter.drawEllipse(36, 14 + bob, 10, 10)
-            painter.setBrush(QColor("black"))
-            painter.drawEllipse(21, 17 + bob, 5, 5)
-            painter.drawEllipse(39, 17 + bob, 5, 5)
-
-            # Ears (triangles)
-            painter.setBrush(color.darker(130))
-            ear_left = QPolygon([QPoint(12, 4 + bob), QPoint(6, 18 + bob), QPoint(22, 14 + bob)])
-            ear_right = QPolygon([QPoint(52, 4 + bob), QPoint(42, 14 + bob), QPoint(58, 18 + bob)])
-            painter.drawPolygon(ear_left)
-            painter.drawPolygon(ear_right)
-
-            painter.end()
-            frames.append(px)
-
+        for fname in files:
+            px = QPixmap(os.path.join(anim_dir, fname))
+            if not px.isNull():
+                frames.append(px)
         return frames
 
+    def reload_sprites(self, custom_dir=None):
+        """Reload sprites, optionally from a custom (recolored) directory."""
+        if custom_dir:
+            template_dir = custom_dir
+            for anim_name in ANIMATION_NAMES:
+                anim_dir = os.path.join(template_dir, anim_name)
+                frames = self._load_frames_from_dir(anim_dir)
+                if frames:
+                    self.frames[anim_name] = frames
+
+            walk_frames = self.frames.get("walk", [])
+            for anim_name in ANIMATION_NAMES:
+                if not self.frames.get(anim_name):
+                    self.frames[anim_name] = walk_frames
+
     def get_frame(self, animation_name, frame_index):
-        """Get a specific frame pixmap for an animation."""
-        anim_frames = self.frames.get(animation_name, self.frames.get("idle", []))
+        anim_frames = self.frames.get(animation_name, self.frames.get("walk", []))
         if not anim_frames:
             return QPixmap(self.sprite_w, self.sprite_h)
         return anim_frames[frame_index % len(anim_frames)]
