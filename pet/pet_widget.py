@@ -106,8 +106,8 @@ class PetCat:
     def _clamp_to_window(self, window_rect):
         self.x = max(window_rect.left, min(self.x, window_rect.right - self.display_w))
 
-    def get_current_frame(self, anim_name):
-        return self.renderer.get_frame(anim_name, self.frame_index)
+    def get_current_frame(self, anim_name, flipped=False):
+        return self.renderer.get_frame(anim_name, self.frame_index, flipped=flipped)
 
     def cursor_distance(self, cursor_pos):
         if cursor_pos is None:
