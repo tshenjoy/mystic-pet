@@ -16,6 +16,11 @@ class PetCat:
     CHASE_SPEED = 4
     STALK_SPEED = 1
 
+    # Windows 10/11 DWM adds invisible shadow border around windows.
+    # GetWindowRect includes this border, so the visible top edge
+    # is actually a few pixels below the reported top.
+    WINDOW_BORDER_OFFSET = 7
+
     def __init__(self, sprite_renderer, display_scale=0.5):
         self.renderer = sprite_renderer
         self.display_scale = display_scale
@@ -46,13 +51,19 @@ class PetCat:
     def update(self, state, direction, window_rect, cursor_pos=None):
         anim = self.animation_name(state)
 
-        self.tick_counter += 1
-        if self.tick_counter >= self.ticks_per_frame:
+        # Only animate when moving — freeze on frame 0 during IDLE
+        if state == State.IDLE:
+            self.frame_index = 0
             self.tick_counter = 0
-            self.frame_index += 1
+        else:
+            self.tick_counter += 1
+            if self.tick_counter >= self.ticks_per_frame:
+                self.tick_counter = 0
+                self.frame_index += 1
 
-        # Cat feet sit on the window's top edge
-        self.y = window_rect.top - self.display_h
+        # Cat feet sit on the visible window top edge
+        visible_top = window_rect.top + self.WINDOW_BORDER_OFFSET
+        self.y = visible_top - self.display_h
 
         if state == State.WALK:
             self._move_walk(direction, window_rect)

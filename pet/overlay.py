@@ -2,7 +2,7 @@
 
 from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtCore import Qt, QTimer, QRect
-from PyQt6.QtGui import QPainter, QTransform
+from PyQt6.QtGui import QPainter
 
 from pet.state_machine import StateMachine, State, Direction
 from pet.pet_widget import PetCat
@@ -11,12 +11,7 @@ from pet.window_tracker import WindowTracker
 
 
 class PetOverlay(QWidget):
-    """Fullscreen transparent window. The cat is painted onto it each frame.
-
-    - Cat walks along the top border of the active window
-    - Hidden when the active window is maximized
-    - Clicking the cat cycles its behavior
-    """
+    """Fullscreen transparent window. The cat is painted onto it each frame."""
 
     TICK_MS = 33  # ~30 fps
 
@@ -37,7 +32,8 @@ class PetOverlay(QWidget):
         self.cat = PetCat(self.renderer)
         self.state_machine = StateMachine()
         self.window_tracker = WindowTracker()
-        self._user_hidden = False  # True when user hides via tray
+        self._user_hidden = False
+        self._last_cat_rect = QRect()
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
@@ -47,7 +43,6 @@ class PetOverlay(QWidget):
         if self._user_hidden:
             return
 
-        # Hide when active window is maximized
         if self.window_tracker.is_maximized():
             if self.isVisible():
                 self.hide()
@@ -65,47 +60,43 @@ class PetOverlay(QWidget):
 
         self.cat.update(state, direction, win_rect, cursor_pos)
 
-        # Reverse direction when cat hits window edge
         if self.cat.needs_direction_flip:
             self.state_machine.direction = (
                 Direction.LEFT if direction == Direction.RIGHT else Direction.RIGHT
             )
 
-        self.update()
+        # Only repaint the area where the cat was and is now
+        new_rect = QRect(self.cat.x, self.cat.y, self.cat.display_w, self.cat.display_h)
+        dirty = self._last_cat_rect.united(new_rect).adjusted(-2, -2, 2, 2)
+        self._last_cat_rect = new_rect
+        self.update(dirty)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         anim = self.cat.animation_name(self.state_machine.state)
-        frame = self.cat.get_current_frame(anim)
+        flipped = self.state_machine.direction.value < 0
+        frame = self.cat.get_current_frame(anim, flipped=flipped)
 
-        if self.state_machine.direction.value < 0:
-            frame = frame.transformed(QTransform().scale(-1, 1))
-
-        # Draw full-res pixmap scaled down to display size
         target = QRect(self.cat.x, self.cat.y, self.cat.display_w, self.cat.display_h)
         painter.drawPixmap(target, frame)
         painter.end()
 
     def mousePressEvent(self, event):
-        """Click on cat = cycle behavior. Click elsewhere = pass through."""
-        click_x = event.position().x()
-        click_y = event.position().y()
+        click_x = int(event.position().x())
+        click_y = int(event.position().y())
 
-        if self.cat.contains_point(int(click_x), int(click_y)):
-            new_state = self.state_machine.on_click()
+        if self.cat.contains_point(click_x, click_y):
+            self.state_machine.on_click()
             self.update()
         else:
-            # Let click pass to window below
             self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
             QApplication.processEvents()
             self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
 
     def reload_sprites(self, custom_dir=None):
-        """Reload sprites after recoloring."""
         self.renderer.reload_sprites(custom_dir)
 
     def set_user_hidden(self, hidden):
-        """Called by system tray toggle."""
         self._user_hidden = hidden
         if hidden:
             self.hide()

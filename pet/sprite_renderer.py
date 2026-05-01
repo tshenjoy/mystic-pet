@@ -2,7 +2,7 @@
 
 import os
 import json
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QTransform
 
 
 ANIMATION_NAMES = ["idle", "walk", "stalk", "chase", "trash_can"]
@@ -13,11 +13,13 @@ class SpriteRenderer:
 
     If an animation folder is missing, it reuses the walk frames.
     Sprite size is auto-detected from the first loaded frame.
+    Pre-caches horizontally flipped frames to avoid per-frame transforms.
     """
 
     def __init__(self, assets_dir):
         self.assets_dir = assets_dir
-        self.frames = {}
+        self.frames = {}         # {"walk": [QPixmap, ...]}
+        self.frames_flipped = {} # {"walk": [QPixmap, ...]} — pre-flipped
         self.metadata = {}
         self.sprite_w = 174
         self.sprite_h = 128
@@ -39,7 +41,7 @@ class SpriteRenderer:
             if frames:
                 self.frames[anim_name] = frames
 
-        # Auto-detect sprite size from first loaded frame
+        # Auto-detect sprite size
         for frames in self.frames.values():
             if frames:
                 self.sprite_w = frames[0].width()
@@ -49,8 +51,10 @@ class SpriteRenderer:
         # Fill missing animations with walk frames
         walk_frames = self.frames.get("walk", [])
         for anim_name in ANIMATION_NAMES:
-            if anim_name not in self.frames or not self.frames[anim_name]:
+            if not self.frames.get(anim_name):
                 self.frames[anim_name] = walk_frames
+
+        self._build_flipped_cache()
 
     def _load_frames_from_dir(self, anim_dir):
         if not os.path.isdir(anim_dir):
@@ -63,12 +67,16 @@ class SpriteRenderer:
                 frames.append(px)
         return frames
 
+    def _build_flipped_cache(self):
+        flip = QTransform().scale(-1, 1)
+        self.frames_flipped = {}
+        for name, frames in self.frames.items():
+            self.frames_flipped[name] = [f.transformed(flip) for f in frames]
+
     def reload_sprites(self, custom_dir=None):
-        """Reload sprites, optionally from a custom (recolored) directory."""
         if custom_dir:
-            template_dir = custom_dir
             for anim_name in ANIMATION_NAMES:
-                anim_dir = os.path.join(template_dir, anim_name)
+                anim_dir = os.path.join(custom_dir, anim_name)
                 frames = self._load_frames_from_dir(anim_dir)
                 if frames:
                     self.frames[anim_name] = frames
@@ -77,9 +85,14 @@ class SpriteRenderer:
             for anim_name in ANIMATION_NAMES:
                 if not self.frames.get(anim_name):
                     self.frames[anim_name] = walk_frames
+        else:
+            self._load_sprites()
 
-    def get_frame(self, animation_name, frame_index):
-        anim_frames = self.frames.get(animation_name, self.frames.get("walk", []))
+        self._build_flipped_cache()
+
+    def get_frame(self, animation_name, frame_index, flipped=False):
+        source = self.frames_flipped if flipped else self.frames
+        anim_frames = source.get(animation_name, source.get("walk", []))
         if not anim_frames:
             return QPixmap(self.sprite_w, self.sprite_h)
         return anim_frames[frame_index % len(anim_frames)]
