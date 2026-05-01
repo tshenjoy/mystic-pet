@@ -1,7 +1,7 @@
 """Transparent overlay window that displays the cat on screen."""
 
 from PyQt6.QtWidgets import QWidget, QApplication
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, QRect
 from PyQt6.QtGui import QPainter, QTransform
 
 from pet.state_machine import StateMachine, State, Direction
@@ -81,7 +81,9 @@ class PetOverlay(QWidget):
         if self.state_machine.direction.value < 0:
             frame = frame.transformed(QTransform().scale(-1, 1))
 
-        painter.drawPixmap(self.cat.position, frame)
+        # Draw full-res pixmap scaled down to display size
+        target = QRect(self.cat.x, self.cat.y, self.cat.display_w, self.cat.display_h)
+        painter.drawPixmap(target, frame)
         painter.end()
 
     def mousePressEvent(self, event):
