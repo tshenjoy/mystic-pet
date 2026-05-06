@@ -3,3 +3,5 @@ Pillow>=10.0
 opencv-python>=4.8
 scikit-learn>=1.3
 numpy>=1.24
+pyobjc-framework-Quartz; platform_system=="Darwin"
+pyobjc-framework-AppKit; platform_system=="Darwin"
