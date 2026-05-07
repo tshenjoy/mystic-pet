@@ -168,97 +168,8 @@ class WindowTracker:
             return 0
 
     def _get_rect_macos(self):
-        # Try AXUIElement (Accessibility API) first
-        rect = self._get_rect_macos_ax()
-        if rect:
-            return rect
-        # Fallback to Quartz bounds
+        # Use Quartz method - simplified
         return self._get_rect_macos_quartz()
-
-    def _get_rect_macos_ax(self):
-        """Use Accessibility API - returns top-left coordinates."""
-        try:
-            import ApplicationServices
-            from AppKit import NSWorkspace
-
-            front_app = NSWorkspace.sharedWorkspace().frontmostApplication()
-            if not front_app:
-                return None
-
-            front_pid = front_app.processIdentifier()
-            app_element = ApplicationServices.AXUIElementCreateApplication(front_pid)
-
-            value_ref = ApplicationServices.AXUIElementCopyAttributeValue(
-                app_element,
-                ApplicationServices.kAXFocusedWindowAttribute,
-                None
-            )
-            if value_ref is None or value_ref[0] is None:
-                return None
-
-            window_element = value_ref[0]
-
-            pos_ref = ApplicationServices.AXUIElementCopyAttributeValue(
-                window_element,
-                ApplicationServices.kAXPositionAttribute,
-                None
-            )
-            size_ref = ApplicationServices.AXUIElementCopyAttributeValue(
-                window_element,
-                ApplicationServices.kAXSizeAttribute,
-                None
-            )
-
-            if pos_ref is None or size_ref is None:
-                return None
-            if pos_ref[0] is None or size_ref[0] is None:
-                return None
-
-            # AX API returns raw values (not AXValue objects)
-            # Need to extract x, y from the returned tuple
-            pos = pos_ref[0]
-            size = size_ref[0]
-
-            # Handle both AXValue and raw tuple cases
-            try:
-                # Try AXValue extraction first
-                import Quartz
-                x = Quartz.AXValueGetValue(pos, Quartz.kAXValueCGPointType)[0]
-                y = Quartz.AXValueGetValue(pos, Quartz.kAXValueCGPointType)[1]
-                w = Quartz.AXValueGetValue(size, Quartz.kAXValueCGSizeType)[0]
-                h = Quartz.AXValueGetValue(size, Quartz.kAXValueCGSizeType)[1]
-            except Exception:
-                # Fallback to assuming raw tuple
-                x = pos[0] if isinstance(pos, (tuple, list)) else pos
-                y = pos[1] if isinstance(pos, (tuple, list)) else pos
-                w = size[0] if isinstance(size, (tuple, list)) else size
-                h = size[1] if isinstance(size, (tuple, list)) else size
-
-            # AX uses BOTTOM-LEFT origin (same as Quartz)
-            # y = distance from screen bottom to BOTTOM of window
-            # So: window top in top-left coords = screen_h - (y + h)
-
-            x = int(x)
-            y = int(y)
-            w = int(w)
-            h = int(h)
-
-            if w <= 0 or h <= 0:
-                return None
-
-            screen_h = self._macos_screen_height()
-            if screen_h:
-                top = screen_h - (y + h)
-            else:
-                top = y
-
-            print(f"DEBUG AX: x={x}, y={y}, w={w}, h={h}, screen_h={screen_h}, top={top}")
-
-            self._last_rect = WindowRect(x, top, x + w, top + h)
-            return self._last_rect
-        except Exception as e:
-            print(f"DEBUG AX Error: {e}")
-            return None
 
     def _get_rect_macos_quartz(self):
         """Use Quartz window list to get bounds."""
@@ -272,21 +183,6 @@ class WindowTracker:
 
             front_pid = front_app.processIdentifier()
             windows = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID)
-
-            # DEBUG: Print all windows for the front app
-            print(f"DEBUG: Front app PID = {front_pid}")
-            for win in windows:
-                if win.get("kCGWindowOwnerPID") != front_pid:
-                    continue
-                bounds = win.get("kCGWindowBounds") or {}
-                w = int(bounds.get("Width", 0))
-                h = int(bounds.get("Height", 0))
-                y = int(bounds.get("Y", 0))
-                layer = win.get("kCGWindowLayer", 0)
-                title = win.get("kCGWindowName", "Unknown")
-                print(f"DEBUG: Window '{title}', layer={layer}, y={y}, h={h}")
-
-            # Now pick the best window (largest, layer 0)
             best = None
             best_area = -1
             for win in windows:
@@ -312,19 +208,12 @@ class WindowTracker:
             w = int(best.get("Width", 0))
             h = int(best.get("Height", 0))
 
-            screen_h = self._macos_screen_height()
-
-            # Based on user feedback: when terminal moves UP, y INCREASES
-            # For cat to move UP (top decreases), we need: top = y (no conversion!)
-            # This means Quartz coords = top-left coords in this case
-
-            top = y  # SIMPLE: Use y directly
-
-            print(f"DEBUG Quartz FINAL (simple): x={x}, y={y}, w={w}, h={h}, screen_h={screen_h}, top={top}")
+            # Simplified: kCGWindowBounds.Y is already in top-left coordinates
+            # Just use y directly as the top of the window
+            top = y
 
             self._last_rect = WindowRect(x, top, x + w, top + h)
-        except Exception as e:
-            print(f"DEBUG Quartz Error: {e}")
+        except Exception:
             pass
         return self._last_rect
 

@@ -13,10 +13,10 @@
   - Fixed CGEventTap coordinate conversion (macOS uses bottom-left origin)
 
 - **Window Tracking Coordinate Fix (Issue #1)**: Fixed cat positioning relative to active window
-  - Corrected Quartz coordinate conversion in `window_tracker.py`
-  - `kCGWindowBounds` Y is now correctly interpreted as the **top** of the window (not bottom)
-  - New formula: `top = screen_h - y - h` (was incorrectly `top = screen_h - (y + h)`)
+  - **Final fix**: kCGWindowBounds.Y is already in **top-left coordinates** (not bottom-left as Apple docs suggest)
+  - Simplified formula: `top = y` (use directly without screen_h conversion)
   - This fixes the issue where cat moved in opposite direction when window was moved
+  - Cat now correctly sits on top of the active window border
 
 - **Animation Direction Sync (Issue #2)**: Fixed animation direction flip timing
   - Moved direction flip BEFORE `cat.update()` call to prevent 1-frame desync
@@ -25,14 +25,14 @@
 ### Changed
 - Switched from `BypassWindowManagerHint` to native macOS window management
 - Overlay window now only covers the cat (not fullscreen) to improve compatibility
-- Window tracker now consistently uses Quartz method for coordinate reporting
+- Window tracker now uses simplified Quartz method (removed complex AX API)
 - Added `NSFloatingWindowLevel` for proper window layering on macOS
 
 ### Technical Details
 - **Files Modified**:
   - `main.py`: Added `NSApplicationActivationPolicyAccessory` setup
   - `pet/overlay.py`: Rewrote macOS window handling, click detection, and coordinate conversion
-  - `pet/window_tracker.py`: Fixed Quartz coordinate conversion for window bounds
+  - `pet/window_tracker.py`: Simplified to use direct Y value as top coordinate
   - `pet/pet_widget.py`: Fixed direction flip timing in update loop
 
-- **Key Insight**: macOS Quartz coordinate system has origin at bottom-left, while the app uses top-left coordinates. The `kCGWindowBounds` Y value represents the **top** of the window in Quartz coordinates, not the bottom as previously assumed.
+- **Key Insight**: Testing revealed that `kCGWindowBounds.Y` is already in top-left coordinates on this system, contrary to Apple's documentation. The simplified formula `top = y` works correctly.
