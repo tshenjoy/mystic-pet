@@ -37,11 +37,37 @@ def main():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
+    # Set activation policy - must be done before any windows are shown
+    if sys.platform == "darwin":
+        try:
+            import AppKit
+            ns_app = AppKit.NSApplication.sharedApplication()
+            # Accessory policy - no dock icon, shouldn't activate
+            ns_app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyAccessory)
+        except Exception as e:
+            print(f"Failed to set activation policy: {e}")
+
     assets_dir = os.path.join(os.path.dirname(__file__), "assets")
 
     # Create pet overlay
     overlay = PetOverlay(assets_dir)
-    overlay.show()
+
+    # On macOS, show window with a delay to avoid activation
+    if sys.platform == "darwin":
+        from PyQt6.QtCore import QTimer
+        def delayed_show():
+            overlay.show()
+            # Re-activate the previously active app
+            try:
+                import AppKit
+                front_app = AppKit.NSWorkspace.sharedWorkspace().frontmostApplication()
+                if front_app:
+                    front_app.activateWithOptions_(AppKit.NSApplicationActivateIgnoringOtherApps)
+            except Exception:
+                pass
+        QTimer.singleShot(100, delayed_show)
+    else:
+        overlay.show()
 
     # System tray
     tray = QSystemTrayIcon(make_tray_icon(), app)

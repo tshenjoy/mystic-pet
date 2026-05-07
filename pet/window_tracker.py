@@ -173,6 +173,15 @@ class WindowTracker:
             return 0
 
     def _get_rect_macos(self):
+        # Use Quartz method consistently - gives full window bounds including title bar
+        # AX method gives content rect only, causing position jumps when it succeeds/fails
+        rect = self._get_rect_macos_quartz()
+        if rect:
+            return rect
+        return self._last_rect
+
+    def _get_rect_macos_quartz(self):
+        """Use Quartz window list to get bounds - corrected coordinate handling."""
         try:
             from AppKit import NSWorkspace
             from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly, kCGNullWindowID
@@ -208,9 +217,16 @@ class WindowTracker:
             w = int(best.get("Width", 0))
             h = int(best.get("Height", 0))
 
+            # FIXED: Based on user feedback, the coordinate conversion was inverted
+            # When terminal moves UP, Y increases in Quartz (window moves away from bottom)
+            # But cat was moving DOWN, meaning top was calculated incorrectly
+            #
+            # The correct interpretation: kCGWindowBounds Y = top of window in Quartz coords
+            # Window top in top-left coords = screen_h - y - h
+
             screen_h = self._macos_screen_height()
             if screen_h:
-                top = screen_h - (y + h)
+                top = screen_h - y - h  # FIXED: Y is the top of the window
             else:
                 top = y
             self._last_rect = WindowRect(x, top, x + w, top + h)
