@@ -48,7 +48,8 @@ class StateMachine:
 
     def __init__(self):
         self.state = State.IDLE
-        self.direction = Direction.RIGHT
+        # Sprites face LEFT by default
+        self.direction = Direction.LEFT
         self.state_start_time = time.time()
         self.state_duration = self._random_duration(State.IDLE)
 
@@ -102,5 +103,5 @@ class StateMachine:
         self.state_duration = self._random_duration(new_state)
 
         if new_state == State.WALK:
-            if random.random() < 0.5:
-                self.direction = Direction.LEFT if self.direction == Direction.RIGHT else Direction.RIGHT
+            # Don't flip randomly — keep current direction so cat walks consistently
+            pass

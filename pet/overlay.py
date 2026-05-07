@@ -198,7 +198,8 @@ class PetOverlay(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         anim = self.cat.animation_name(self.state_machine.state)
-        flipped = self.state_machine.direction.value < 0
+        # Sprites face LEFT by default, so flip when moving RIGHT
+        flipped = self.state_machine.direction.value > 0
         frame = self.cat.get_current_frame(anim, flipped=flipped)
 
         # Draw at (0,0) because window is positioned at cat's location
