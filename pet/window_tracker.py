@@ -31,12 +31,7 @@ if sys.platform == "win32":
 
 
 class WindowTracker:
-    """Polls the foreground window and returns its rect.
-
-    Windows: uses pywin32.
-    Linux: uses xdotool + xprop (X11).
-    macOS: uses Quartz + AppKit (pyobjc), falls back to last rect if unavailable.
-    """
+    """Polls the foreground window and returns its rect."""
 
     def __init__(self):
         self._last_rect = WindowRect()
@@ -173,7 +168,7 @@ class WindowTracker:
             return 0
 
     def _get_rect_macos(self):
-        # Try AXUIElement (Accessibility API) first - gives actual content rect
+        # Try AXUIElement (Accessibility API) first
         rect = self._get_rect_macos_ax()
         if rect:
             return rect
@@ -181,7 +176,7 @@ class WindowTracker:
         return self._get_rect_macos_quartz()
 
     def _get_rect_macos_ax(self):
-        """Use Accessibility API to get the frontmost window's content rect."""
+        """Use Accessibility API - returns top-left coordinates."""
         try:
             import ApplicationServices
             from AppKit import NSWorkspace
@@ -191,11 +186,8 @@ class WindowTracker:
                 return None
 
             front_pid = front_app.processIdentifier()
-
-            # Get the app's accessibility element
             app_element = ApplicationServices.AXUIElementCreateApplication(front_pid)
 
-            # Get the focused window
             value_ref = ApplicationServices.AXUIElementCopyAttributeValue(
                 app_element,
                 ApplicationServices.kAXFocusedWindowAttribute,
@@ -206,7 +198,6 @@ class WindowTracker:
 
             window_element = value_ref[0]
 
-            # Get window position and size (these are the content area bounds)
             pos_ref = ApplicationServices.AXUIElementCopyAttributeValue(
                 window_element,
                 ApplicationServices.kAXPositionAttribute,
@@ -226,10 +217,10 @@ class WindowTracker:
             pos = pos_ref[0]
             size = size_ref[0]
 
-            # AX API uses top-left origin (same as our internal coordinate system)
-            # BUT the values are in bottom-left Quartz coordinates!
+            # AX API uses BOTTOM-LEFT origin (same as Quartz)
             # pos.y = distance from screen bottom to BOTTOM of window
             # So: window top in top-left coords = screen_h - (pos.y + size.height)
+
             x = int(pos.x)
             y = int(pos.y)
             w = int(size.width)
@@ -244,9 +235,12 @@ class WindowTracker:
             else:
                 top = y
 
+            print(f"DEBUG AX: x={x}, y={y}, w={w}, h={h}, screen_h={screen_h}, top={top}")
+
             self._last_rect = WindowRect(x, top, x + w, top + h)
             return self._last_rect
-        except Exception:
+        except Exception as e:
+            print(f"DEBUG AX Error: {e}")
             return None
 
     def _get_rect_macos_quartz(self):
@@ -286,23 +280,20 @@ class WindowTracker:
             w = int(best.get("Width", 0))
             h = int(best.get("Height", 0))
 
-            # Quartz uses bottom-left origin
-            # kCGWindowBounds Y = distance from screen bottom to TOP of window
-            # (This is documented by Apple)
-            # So: window top in top-left coords = screen_h - y
-            # And: window bottom in top-left coords = screen_h - y + h... no
-            # Wait: if Y is the TOP, then BOTTOM = Y - h in Quartz coords
-            # So in top-left: bottom = screen_h - (Y - h) = screen_h - Y + h
-            # That's confusing. Let me just use: top = screen_h - y
-
-            # EXPERIMENTAL FIX: Assume Y is the top of the window
             screen_h = self._macos_screen_height()
-            if screen_h:
-                top = screen_h - y  # Y is the TOP of the window
-            else:
-                top = y
+
+            # Quartz uses BOTTOM-LEFT origin
+            # kCGWindowBounds.Y = distance from screen bottom to BOTTOM of window
+            # Window top in Quartz = y + h
+            # Convert to top-left: top = screen_h - (y + h)
+
+            top = screen_h - (y + h) if screen_h else y
+
+            print(f"DEBUG Quartz: x={x}, y={y}, w={w}, h={h}, screen_h={screen_h}, top={top}")
+
             self._last_rect = WindowRect(x, top, x + w, top + h)
-        except Exception:
+        except Exception as e:
+            print(f"DEBUG Quartz Error: {e}")
             pass
         return self._last_rect
 
