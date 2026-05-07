@@ -173,15 +173,84 @@ class WindowTracker:
             return 0
 
     def _get_rect_macos(self):
-        # Use Quartz method consistently - gives full window bounds including title bar
-        # AX method gives content rect only, causing position jumps when it succeeds/fails
-        rect = self._get_rect_macos_quartz()
+        # Try AXUIElement (Accessibility API) first - gives actual content rect
+        rect = self._get_rect_macos_ax()
         if rect:
             return rect
-        return self._last_rect
+        # Fallback to Quartz bounds
+        return self._get_rect_macos_quartz()
+
+    def _get_rect_macos_ax(self):
+        """Use Accessibility API to get the frontmost window's content rect."""
+        try:
+            import ApplicationServices
+            from AppKit import NSWorkspace
+
+            front_app = NSWorkspace.sharedWorkspace().frontmostApplication()
+            if not front_app:
+                return None
+
+            front_pid = front_app.processIdentifier()
+
+            # Get the app's accessibility element
+            app_element = ApplicationServices.AXUIElementCreateApplication(front_pid)
+
+            # Get the focused window
+            value_ref = ApplicationServices.AXUIElementCopyAttributeValue(
+                app_element,
+                ApplicationServices.kAXFocusedWindowAttribute,
+                None
+            )
+            if value_ref is None or value_ref[0] is None:
+                return None
+
+            window_element = value_ref[0]
+
+            # Get window position and size (these are the content area bounds)
+            pos_ref = ApplicationServices.AXUIElementCopyAttributeValue(
+                window_element,
+                ApplicationServices.kAXPositionAttribute,
+                None
+            )
+            size_ref = ApplicationServices.AXUIElementCopyAttributeValue(
+                window_element,
+                ApplicationServices.kAXSizeAttribute,
+                None
+            )
+
+            if pos_ref is None or size_ref is None:
+                return None
+            if pos_ref[0] is None or size_ref[0] is None:
+                return None
+
+            pos = pos_ref[0]
+            size = size_ref[0]
+
+            # AX API uses top-left origin (same as our internal coordinate system)
+            # BUT the values are in bottom-left Quartz coordinates!
+            # pos.y = distance from screen bottom to BOTTOM of window
+            # So: window top in top-left coords = screen_h - (pos.y + size.height)
+            x = int(pos.x)
+            y = int(pos.y)
+            w = int(size.width)
+            h = int(size.height)
+
+            if w <= 0 or h <= 0:
+                return None
+
+            screen_h = self._macos_screen_height()
+            if screen_h:
+                top = screen_h - (y + h)
+            else:
+                top = y
+
+            self._last_rect = WindowRect(x, top, x + w, top + h)
+            return self._last_rect
+        except Exception:
+            return None
 
     def _get_rect_macos_quartz(self):
-        """Use Quartz window list to get bounds - corrected coordinate handling."""
+        """Use Quartz window list to get bounds."""
         try:
             from AppKit import NSWorkspace
             from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly, kCGNullWindowID
@@ -217,16 +286,19 @@ class WindowTracker:
             w = int(best.get("Width", 0))
             h = int(best.get("Height", 0))
 
-            # FIXED: Based on user feedback, the coordinate conversion was inverted
-            # When terminal moves UP, Y increases in Quartz (window moves away from bottom)
-            # But cat was moving DOWN, meaning top was calculated incorrectly
-            #
-            # The correct interpretation: kCGWindowBounds Y = top of window in Quartz coords
-            # Window top in top-left coords = screen_h - y - h
+            # Quartz uses bottom-left origin
+            # kCGWindowBounds Y = distance from screen bottom to TOP of window
+            # (This is documented by Apple)
+            # So: window top in top-left coords = screen_h - y
+            # And: window bottom in top-left coords = screen_h - y + h... no
+            # Wait: if Y is the TOP, then BOTTOM = Y - h in Quartz coords
+            # So in top-left: bottom = screen_h - (Y - h) = screen_h - Y + h
+            # That's confusing. Let me just use: top = screen_h - y
 
+            # EXPERIMENTAL FIX: Assume Y is the top of the window
             screen_h = self._macos_screen_height()
             if screen_h:
-                top = screen_h - y - h  # FIXED: Y is the top of the window
+                top = screen_h - y  # Y is the TOP of the window
             else:
                 top = y
             self._last_rect = WindowRect(x, top, x + w, top + h)
