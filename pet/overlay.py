@@ -1,8 +1,9 @@
 """Transparent overlay window that displays the cat on screen."""
 
+import sys
 from PyQt6.QtWidgets import QWidget, QApplication
-from PyQt6.QtCore import Qt, QTimer, QRect
-from PyQt6.QtGui import QPainter
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QPainter, QBitmap
 
 from pet.state_machine import StateMachine, State, Direction
 from pet.pet_widget import PetCat
@@ -11,29 +12,33 @@ from pet.window_tracker import WindowTracker
 
 
 class PetOverlay(QWidget):
-    """Fullscreen transparent window. The cat is painted onto it each frame."""
+    """Cat-sized window that follows the pet's position each frame.
+
+    Uses setMask() to cut out the sprite shape so it works
+    on X11 without a compositor (no WA_TranslucentBackground needed).
+    """
 
     TICK_MS = 33  # ~30 fps
 
     def __init__(self, assets_dir):
         super().__init__()
 
-        self.setWindowFlags(
+        flags = (
             Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.WindowStaysOnTopHint
             | Qt.WindowType.Tool
         )
+        if sys.platform.startswith("linux"):
+            flags |= Qt.WindowType.X11BypassWindowManagerHint
+        self.setWindowFlags(flags)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
-        screen = QApplication.primaryScreen().geometry()
-        self.setGeometry(screen)
 
         self.renderer = SpriteRenderer(assets_dir)
         self.cat = PetCat(self.renderer)
         self.state_machine = StateMachine()
         self.window_tracker = WindowTracker()
         self._user_hidden = False
-        self._last_cat_rect = QRect()
+        self._current_frame = None
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
@@ -65,33 +70,28 @@ class PetOverlay(QWidget):
                 Direction.LEFT if direction == Direction.RIGHT else Direction.RIGHT
             )
 
-        # Only repaint the area where the cat was and is now
-        new_rect = QRect(self.cat.x, self.cat.y, self.cat.display_w, self.cat.display_h)
-        dirty = self._last_cat_rect.united(new_rect).adjusted(-2, -2, 2, 2)
-        self._last_cat_rect = new_rect
-        self.update(dirty)
+        anim = self.cat.animation_name(self.state_machine.state)
+        flipped = direction.value < 0
+        self._current_frame = self.cat.get_current_frame(anim, flipped=flipped)
+
+        scaled = self._current_frame.scaled(self.cat.display_w, self.cat.display_h)
+        mask = scaled.createMaskFromColor(Qt.GlobalColor.transparent, Qt.MaskMode.MaskInColor)
+        self.setMask(mask)
+
+        self.setFixedSize(self.cat.display_w, self.cat.display_h)
+        self.move(self.cat.x, self.cat.y)
+        self.update()
 
     def paintEvent(self, event):
+        if self._current_frame is None:
+            return
         painter = QPainter(self)
-        anim = self.cat.animation_name(self.state_machine.state)
-        flipped = self.state_machine.direction.value < 0
-        frame = self.cat.get_current_frame(anim, flipped=flipped)
-
-        target = QRect(self.cat.x, self.cat.y, self.cat.display_w, self.cat.display_h)
-        painter.drawPixmap(target, frame)
+        painter.drawPixmap(0, 0, self.cat.display_w, self.cat.display_h, self._current_frame)
         painter.end()
 
     def mousePressEvent(self, event):
-        click_x = int(event.position().x())
-        click_y = int(event.position().y())
-
-        if self.cat.contains_point(click_x, click_y):
-            self.state_machine.on_click()
-            self.update()
-        else:
-            self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-            QApplication.processEvents()
-            self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
+        self.state_machine.on_click()
+        self.update()
 
     def reload_sprites(self, custom_dir=None):
         self.renderer.reload_sprites(custom_dir)

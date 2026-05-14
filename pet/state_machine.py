@@ -6,7 +6,9 @@ import time
 
 
 class State(Enum):
-    IDLE = auto()
+    IDLE = auto()        # walk_to_idle transition (play once)
+    SITTING = auto()     # static sit
+    STANDING = auto()    # idle_to_walk transition (play once)
     WALK = auto()
     STALK = auto()
     CHASE = auto()
@@ -27,7 +29,9 @@ class StateMachine:
 
     # How long each state lasts (seconds)
     STATE_DURATION = {
-        State.IDLE: (2, 4),
+        State.IDLE: (0.6, 0.6),
+        State.SITTING: (2, 4),
+        State.STANDING: (0.6, 0.6),
         State.WALK: (4, 8),
         State.STALK: (3, 5),
         State.CHASE: (3, 6),
@@ -41,10 +45,11 @@ class StateMachine:
         State.TRASH_CAN: 15,
     }
 
-    CHASE_TRIGGER_DISTANCE = 150  # pixels — cursor must be this close to trigger chase
+    CHASE_TRIGGER_DISTANCE = 150
+    CHASE_EXIT_DISTANCE = 300
 
     # Click cycles through these states in order
-    CLICK_CYCLE = [State.IDLE, State.WALK, State.STALK, State.TRASH_CAN]
+    CLICK_CYCLE = [State.SITTING, State.WALK, State.STALK, State.TRASH_CAN]
 
     def __init__(self):
         self.state = State.IDLE
@@ -69,16 +74,24 @@ class StateMachine:
         """
         elapsed = time.time() - self.state_start_time
 
-        # Chase interrupts any state if cursor is close enough
-        if (cursor_distance is not None
-                and cursor_distance < self.CHASE_TRIGGER_DISTANCE
-                and self.state != State.CHASE):
-            self._enter_state(State.CHASE)
-            return self.state
+        # Chase: enter at 150px, exit only when cursor > 300px away
+        if cursor_distance is not None:
+            if (cursor_distance < self.CHASE_TRIGGER_DISTANCE
+                    and self.state != State.CHASE):
+                self._enter_state(State.CHASE)
+                return self.state
+            if (self.state == State.CHASE
+                    and cursor_distance > self.CHASE_EXIT_DISTANCE):
+                self._enter_state(State.IDLE)
+                return self.state
 
         # Check if current state duration expired
         if elapsed >= self.state_duration:
             if self.state == State.IDLE:
+                self._enter_state(State.SITTING)
+            elif self.state == State.SITTING:
+                self._enter_state(State.STANDING)
+            elif self.state == State.STANDING:
                 next_state = self._pick_next_from_idle()
                 self._enter_state(next_state)
             else:
@@ -92,7 +105,7 @@ class StateMachine:
             idx = self.CLICK_CYCLE.index(self.state)
             next_state = self.CLICK_CYCLE[(idx + 1) % len(self.CLICK_CYCLE)]
         except ValueError:
-            next_state = State.IDLE
+            next_state = State.SITTING
         self._enter_state(next_state)
         return self.state
 

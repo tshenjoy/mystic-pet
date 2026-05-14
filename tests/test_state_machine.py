@@ -23,7 +23,15 @@ def test_stays_idle_briefly():
 
 def test_transitions_after_idle_expires():
     sm = StateMachine()
-    sm.state_duration = 0  # force immediate expiry
+    sm.state_duration = 0
+    sm.state_start_time = time.time() - 1
+    state = sm.update(cursor_distance=None)
+    assert state == State.SITTING  # IDLE -> SITTING
+    sm.state_duration = 0
+    sm.state_start_time = time.time() - 1
+    state = sm.update(cursor_distance=None)
+    assert state == State.STANDING  # SITTING -> STANDING
+    sm.state_duration = 0
     sm.state_start_time = time.time() - 1
     state = sm.update(cursor_distance=None)
     assert state in (State.WALK, State.STALK, State.TRASH_CAN)
@@ -61,20 +69,22 @@ def test_click_cycles_state():
     sm = StateMachine()
     assert sm.state == State.IDLE
     sm.on_click()
+    assert sm.state == State.SITTING  # IDLE not in cycle, falls to SITTING
+    sm.on_click()
     assert sm.state == State.WALK
     sm.on_click()
     assert sm.state == State.STALK
     sm.on_click()
     assert sm.state == State.TRASH_CAN
     sm.on_click()
-    assert sm.state == State.IDLE  # wraps around
+    assert sm.state == State.SITTING  # wraps around
 
 
-def test_click_from_chase_goes_to_idle():
+def test_click_from_chase_goes_to_sitting():
     sm = StateMachine()
     sm._enter_state(State.CHASE)
     sm.on_click()
-    assert sm.state == State.IDLE
+    assert sm.state == State.SITTING
 
 
 def test_direction_changes():
@@ -82,14 +92,14 @@ def test_direction_changes():
     initial = sm.direction
     flipped = False
     for _ in range(50):
-        sm._enter_state(State.IDLE)
+        # STANDING -> expired -> picks WALK/STALK/TRASH_CAN (WALK may flip direction)
+        sm._enter_state(State.STANDING)
         sm.state_duration = 0
         sm.state_start_time = time.time() - 1
         sm.update(cursor_distance=None)
         if sm.direction != initial:
             flipped = True
             break
-    # Direction should flip at least once in 50 transitions (probabilistic but near-certain)
     assert flipped
 
 

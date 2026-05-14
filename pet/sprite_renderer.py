@@ -5,7 +5,7 @@ import json
 from PyQt6.QtGui import QPixmap, QTransform
 
 
-ANIMATION_NAMES = ["idle", "walk", "stalk", "chase", "trash_can"]
+ANIMATION_NAMES = ["idle", "walk", "walk_to_idle", "idle_to_walk", "stalk", "chase", "trash_can"]
 
 
 class SpriteRenderer:

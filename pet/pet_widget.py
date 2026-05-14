@@ -1,5 +1,6 @@
 """The cat pet — handles position, animation, and movement logic."""
 
+import sys
 import math
 from PyQt6.QtCore import QPoint
 from pet.state_machine import State, Direction
@@ -16,10 +17,7 @@ class PetCat:
     CHASE_SPEED = 4
     STALK_SPEED = 1
 
-    # Windows 10/11 DWM adds invisible shadow border around windows.
-    # GetWindowRect includes this border, so the visible top edge
-    # is actually a few pixels below the reported top.
-    WINDOW_BORDER_OFFSET = 7
+    WINDOW_BORDER_OFFSET = 7 if sys.platform == "win32" else 0
 
     def __init__(self, sprite_renderer, display_scale=0.5):
         self.renderer = sprite_renderer
@@ -30,6 +28,7 @@ class PetCat:
         self.ticks_per_frame = 6
         self.tick_counter = 0
         self._needs_direction_flip = False
+        self._prev_state = None
 
     @property
     def display_w(self):
@@ -41,7 +40,9 @@ class PetCat:
 
     def animation_name(self, state):
         return {
-            State.IDLE: "idle",
+            State.IDLE: "walk_to_idle",
+            State.SITTING: "idle",
+            State.STANDING: "idle_to_walk",
             State.WALK: "walk",
             State.STALK: "stalk",
             State.CHASE: "chase",
@@ -49,12 +50,23 @@ class PetCat:
         }.get(state, "idle")
 
     def update(self, state, direction, window_rect, cursor_pos=None):
-        anim = self.animation_name(state)
-
-        # Only animate when moving — freeze on frame 0 during IDLE
-        if state == State.IDLE:
+        if state != self._prev_state:
             self.frame_index = 0
             self.tick_counter = 0
+            self._prev_state = state
+
+        anim = self.animation_name(state)
+        frame_count = self.renderer.frame_count(anim)
+
+        if state in (State.IDLE, State.STANDING):
+            # Play transition once, hold last frame
+            self.tick_counter += 1
+            if self.tick_counter >= self.ticks_per_frame:
+                self.tick_counter = 0
+                if self.frame_index < frame_count - 1:
+                    self.frame_index += 1
+        elif state == State.SITTING:
+            self.frame_index = 0
         else:
             self.tick_counter += 1
             if self.tick_counter >= self.ticks_per_frame:
@@ -119,7 +131,10 @@ class PetCat:
 
     @property
     def needs_direction_flip(self):
-        return self._needs_direction_flip
+        if self._needs_direction_flip:
+            self._needs_direction_flip = False
+            return True
+        return False
 
     def contains_point(self, x, y):
         return (self.x <= x <= self.x + self.display_w
