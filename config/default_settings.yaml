@@ -1,0 +1,32 @@
+pet:
+  name: "Mystic"
+  position:
+    x: 100
+    y: 100
+  scale: 1.0
+  hidden: false
+
+whisper:
+  enabled: true
+  interval_minutes: 60
+  jitter_pct: 20
+  bubble_seconds: 6
+  categories:
+    - delulu
+    - cursed
+    - lore
+
+ritual:
+  daily_cap: 3
+  spread_size: 3
+  deck: default
+
+llm:
+  provider: anthropic
+  model: claude-haiku-4.6
+  max_tokens: 400
+  timeout_seconds: 15
+
+audio:
+  muted: false
+  volume: 0.6

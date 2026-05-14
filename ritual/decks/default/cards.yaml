@@ -1,0 +1,62 @@
+# MVP starter deck — small subset of Major Arcana.
+# Phase 4 will expand to full 78-card Rider-Waite + AI-generated art.
+- name: "The Fool"
+  upright_meaning: "new beginnings, leap of faith, wide-eyed optimism"
+  reversed_meaning: "recklessness, holding back, fear of the unknown"
+  image: null
+- name: "The Magician"
+  upright_meaning: "skill, manifestation, focused will"
+  reversed_meaning: "manipulation, untapped talent, scattered energy"
+  image: null
+- name: "The High Priestess"
+  upright_meaning: "intuition, inner voice, sacred knowledge"
+  reversed_meaning: "secrets withheld, ignored intuition, surface answers"
+  image: null
+- name: "The Empress"
+  upright_meaning: "abundance, nurture, creative bloom"
+  reversed_meaning: "stagnation, overgiving, creative block"
+  image: null
+- name: "The Emperor"
+  upright_meaning: "structure, authority, steady ground"
+  reversed_meaning: "rigidity, control issues, brittle power"
+  image: null
+- name: "The Lovers"
+  upright_meaning: "alignment, choice, connection"
+  reversed_meaning: "disharmony, second-guessing, mismatched values"
+  image: null
+- name: "The Chariot"
+  upright_meaning: "drive, willpower through opposing forces"
+  reversed_meaning: "lack of direction, scattered effort"
+  image: null
+- name: "Strength"
+  upright_meaning: "quiet courage, gentleness over force"
+  reversed_meaning: "self-doubt, raw force, exhaustion"
+  image: null
+- name: "The Hermit"
+  upright_meaning: "solitude, inner search, lantern in the dark"
+  reversed_meaning: "isolation, withdrawal, refusing counsel"
+  image: null
+- name: "Wheel of Fortune"
+  upright_meaning: "cycles turning, luck arriving, change of tide"
+  reversed_meaning: "stuck cycles, bad timing, resistance to change"
+  image: null
+- name: "The Star"
+  upright_meaning: "hope, renewal, soft light after storm"
+  reversed_meaning: "lost faith, despair, dimmed inspiration"
+  image: null
+- name: "The Moon"
+  upright_meaning: "illusion, dreams, unclear paths"
+  reversed_meaning: "truth surfacing, fog lifting, clarity returning"
+  image: null
+- name: "The Sun"
+  upright_meaning: "joy, warmth, success seen in plain light"
+  reversed_meaning: "delayed joy, clouded confidence, false brightness"
+  image: null
+- name: "Judgement"
+  upright_meaning: "reckoning, awakening, call to account"
+  reversed_meaning: "self-doubt, ignored call, refusal to grow"
+  image: null
+- name: "The World"
+  upright_meaning: "completion, integration, you are here"
+  reversed_meaning: "almost-there, unfinished business, premature closure"
+  image: null
