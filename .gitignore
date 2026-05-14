@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+venv/
+.venv/
+env/
+.env
+.envrc
+
+# Build artifacts
+dist/
+build/
+*.spec
+*.egg-info/
+
+# OS / editor
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local user data + caches
+cache/
+assets/cache/
+config/user_settings.yaml
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
+.env
+secrets.yaml
